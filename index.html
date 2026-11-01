@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>内耗指数 · 自我观察测试</title>
+<style>
+:root{--bg:#f5f3f7;--card:#fff;--ink:#211d2b;--sub:#7a7488;--p1:#6b4de6;--line:#ece7f3;--warm:#c0693a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+min-height:100vh;display:flex;justify-content:center;-webkit-font-smoothing:antialiased}
+#app{width:100%;max-width:430px;min-height:100vh;background:var(--bg);position:relative;overflow:hidden}
+.screen{display:none;padding:24px 20px 40px;animation:fade .35s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.brand{display:flex;align-items:center;justify-content:center;margin:36px 0 16px}
+.icon{width:74px;height:74px;border-radius:22px;background:linear-gradient(160deg,#efe3d8,#e0c8b4);
+display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 10px 24px rgba(180,150,120,.25)}
+h1.t{text-align:center;font-size:25px;line-height:1.4;letter-spacing:-.4px;
+background:linear-gradient(90deg,#5a3fd0,#8b5cf6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.meta-line{text-align:center;color:var(--sub);font-size:12.5px;margin-top:8px}
+.intro{background:var(--card);border-radius:18px;padding:18px;margin:20px 0 16px;
+box-shadow:0 2px 14px rgba(80,60,140,.06);font-size:13.5px;line-height:1.85;color:#4a4458}
+.btn{display:block;width:100%;border:none;border-radius:999px;padding:16px;font-size:16px;font-weight:600;color:#fff;
+background:linear-gradient(135deg,#7c5cf0,#5b3fd6);cursor:pointer;box-shadow:0 8px 22px rgba(107,77,230,.3)}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:#fff;color:var(--p1);box-shadow:0 2px 10px rgba(80,60,140,.08)}
+.tiny{text-align:center;font-size:11px;color:#a8a2b6;margin-top:12px;line-height:1.7}
+.pick{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:15px;margin-bottom:11px;cursor:pointer;transition:all .16s}
+.pick.sel{border-color:var(--p1);background:#f7f3ff;box-shadow:0 6px 20px rgba(107,77,230,.16)}
+.pick.sel.sel2{border-color:#b8860b;background:#fff9ef;box-shadow:0 6px 20px rgba(184,134,11,.16)}
+.pick .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.pick .hd .left{display:flex;align-items:center;gap:9px}
+.pick .nm{font-size:16px;font-weight:700}
+.pick .pc{font-size:12px;color:#fff;background:var(--p1);border-radius:20px;padding:2px 10px;font-weight:600}
+.pick.sel2 .pc{background:linear-gradient(90deg,#c98a3c,#b8860b)}
+.pick .ds{font-size:12.5px;color:var(--sub);line-height:1.7}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid #d9d2e8;background:#fff;flex:none;display:flex;
+align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700}
+.pick.sel .chk{background:var(--p1);border-color:var(--p1)}
+.pick.sel.sel2 .chk{background:#b8860b;border-color:#b8860b}
+.locknote{display:none;background:#f4faf7;border:1px solid #cfe3d9;border-radius:12px;padding:10px;
+text-align:center;font-size:12.5px;color:#0f5c4a;margin-bottom:12px}
+.pwcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 18px;margin:24px 0 16px;text-align:center}
+.pwlabel{font-size:14px;color:var(--sub);margin-bottom:14px}
+.pwin{width:200px;height:56px;border:2px solid var(--line);border-radius:14px;font-size:26px;text-align:center;letter-spacing:10px;
+color:var(--ink);outline:none;font-weight:600;background:#fbfaff}
+.pwin:focus{border-color:var(--p1)}
+.pwerr{display:none;color:#c0392b;font-size:12.5px;margin-top:10px}
+@keyframes pwshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.shake{animation:pwshake .4s ease}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.topbar .ttl{font-size:14.5px;font-weight:600}
+.ver{font-size:12px;color:var(--sub)}
+.prog{height:4px;background:#e6dfef;border-radius:3px;overflow:hidden;margin-bottom:22px}
+.prog i{display:block;height:100%;width:3%;background:linear-gradient(90deg,#8b6cf2,#6b4de6);border-radius:3px;transition:width .3s}
+.qcat{font-size:11.5px;color:var(--p1);font-weight:600;margin-bottom:8px}
+.qtext{font-size:19px;line-height:1.55;font-weight:600;margin-bottom:22px;letter-spacing:-.3px}
+.opt{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:9px;font-size:14.5px;
+color:#332e42;display:flex;align-items:center;gap:11px;cursor:pointer;transition:all .15s}
+.opt .k{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid #d9d2e8;display:flex;align-items:center;
+justify-content:center;font-size:11px;color:#9a93aa;font-weight:600}
+.opt.sel{border-color:var(--p1);background:#f6f2ff}
+.opt.sel .k{background:var(--p1);border-color:var(--p1);color:#fff}
+.back{text-align:center;font-size:12px;color:#a8a2b6;margin-top:14px}
+.res-top{text-align:center;margin:2px 0 0}
+.res-top .lb{font-size:12.5px;color:var(--sub)}
+.score{font-size:62px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin:2px 0;
+background:linear-gradient(120deg,#b3562f,#d98b4a 60%,#a8442a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.score small{font-size:20px;font-weight:600}
+.level{font-size:13px;color:var(--warm);font-weight:600}
+.tname{font-size:22px;font-weight:800;color:#211d2b;margin:16px 0 4px;letter-spacing:-.3px}
+.tline{font-size:13.5px;color:#6b6b70;margin-bottom:12px}
+.tags{display:flex;gap:7px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap}
+.tags span{font-size:12px;padding:5px 11px;border-radius:999px;background:#fff;color:#6a6379;border:1px solid var(--line)}
+.panel{background:#fff;border-radius:18px;padding:17px;margin-bottom:13px;box-shadow:0 2px 14px rgba(80,60,140,.06)}
+.panel h3{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.panel h3::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--p1)}
+.dim{display:flex;align-items:center;gap:9px;font-size:12.5px;margin:8px 0;color:#5c5669}
+.dim .n{width:74px;flex:none;color:#8a8496}
+.dim .b{flex:1;height:7px;background:#efeaf6;border-radius:4px;overflow:hidden}
+.dim .b i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#d9a86a,#b3562f)}
+.dim .s{width:30px;text-align:right;font-variant-numeric:tabular-nums;color:#9a93aa;font-size:11px}
+.desc{font-size:14px;line-height:1.95;color:#4a4458}
+.adv{list-style:none;padding:0;margin:8px 0 0}
+.adv li{font-size:13.5px;line-height:1.8;color:#4a4458;padding:9px 0 9px 26px;position:relative;border-bottom:1px dashed var(--line)}
+.adv li:last-child{border-bottom:none}
+.adv li::before{content:"→";position:absolute;left:0;top:9px;color:var(--warm);font-weight:700}
+.wm{text-align:center;font-size:12.5px;color:#a8a2b6;letter-spacing:2px;margin:6px 0 14px}
+.cardimg{width:100%;border-radius:14px;display:block;margin:0 auto;border:1px solid var(--line)}
+.share-txt{font-size:12.5px;line-height:1.85;color:#6a6379;background:#faf8fd;border-radius:12px;padding:13px;white-space:pre-wrap}
+.disc{font-size:11px;color:#a8a2b6;line-height:1.8;text-align:center;margin-top:14px}
+.row{display:flex;gap:9px;margin-top:11px}
+.row .btn{padding:13px;font-size:13.5px}
+.hint{font-size:11.5px;color:var(--sub);text-align:center;margin-top:8px}
+.demotip{display:none}
+@media(max-width:380px){.qtext{font-size:18px}.score{font-size:54px}}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div class="screen on" id="s-pwd">
+  <div class="brand"><div class="icon">🔋</div></div>
+  <h1 class="t">内耗指数</h1>
+  <div class="meta-line">SELF-OBSERVATION · 2026</div>
+  <div class="pwcard">
+    <p class="pwlabel">请输入 4 位访问密码</p>
+    <input type="password" id="pw" class="pwin" maxlength="4" placeholder="••••" inputmode="numeric" autocomplete="off">
+    <p class="pwerr" id="pwe">密码错误，请重新输入</p>
+  </div>
+  <button class="btn" id="pwBtn">→ 验证并开始</button>
+  <p class="demotip" id="demotip"></p>
+  <div class="tiny">密码随下单后的发货消息一同发送<br>遇到问题请先联系客服，不要重复下单</div>
+</div>
+
+<div class="screen" id="s-intro">
+  <div class="brand"><div class="icon">🔋</div></div>
+  <h1 class="t">内耗指数</h1>
+  <div class="meta-line">5 个维度 · 娱乐向自我观察</div>
+  <div class="intro">
+    有些人不是累了，是<b>一直在跟自己较劲</b>。<br><br>
+    这份测试从<b>反复回想、决策犹豫、在意评价、对自己高标准、边界与责任感</b>五个方向，帮你看清自己的内耗主要消耗在哪。<br><br>
+    <span style="color:#8a8496;font-size:12.5px">凭第一感觉选，题目没有对错。</span>
+  </div>
+  <div class="pick sel" id="pk1">
+    <div class="hd"><span class="left"><span class="chk">✓</span><span class="nm">快速版</span></span><span class="pc">50 题</span></div>
+    <div class="ds">每维度 10 题，约 4 分钟。给出内耗指数、主要模式与 3 条建议。</div>
+  </div>
+  <div class="pick sel2" id="pk2">
+    <div class="hd"><span class="left"><span class="chk">✓</span><span class="nm">完整版</span></span><span class="pc">100 题</span></div>
+    <div class="ds">每维度 20 题，约 8 分钟。取样更细，额外给出<b>次要倾向</b>与更完整的解读。</div>
+  </div>
+  <p class="locknote" id="locknote"></p>
+  <button class="btn" style="margin-top:6px" id="startBtn" onclick="start()">开始测试（50 题 · 约 4 分钟）</button>
+  <div class="tiny">本测试为娱乐向自我观察，非心理诊断、无预测性质<br>结果仅供参考，不作为任何临床判断依据</div>
+</div>
+
+<div class="screen" id="s-quiz">
+  <div class="topbar"><span class="ttl">内耗指数</span><span class="ver" id="ver">快速版 50 题</span></div>
+  <div class="prog"><i id="bar"></i></div>
+  <div class="qcat" id="qcat"></div>
+  <div class="qtext" id="qtext"></div>
+  <div id="opts"></div>
+  <div class="back" onclick="prevQ()">← 上一题</div>
+</div>
+
+<div class="screen" id="s-result">
+  <div class="res-top">
+    <div class="lb">你的内耗指数</div>
+    <div class="score" id="score">0<small> 分</small></div>
+    <div class="level" id="level"></div>
+    <div class="tname" id="tname"></div>
+    <div class="tline" id="tline"></div>
+    <div class="tags" id="tags"></div>
+  </div>
+  <div class="wm">测 嘛 奔 腾</div>
+
+  <div class="panel">
+    <h3>五个维度得分</h3>
+    <div id="dims"></div>
+  </div>
+
+  <div class="panel">
+    <h3>这意味着什么</h3>
+    <div class="desc" id="desc"></div>
+  </div>
+
+  <div class="panel" id="secPanel">
+    <h3>次要倾向</h3>
+    <div class="desc" id="sec"></div>
+  </div>
+
+  <div class="panel">
+    <h3>可以试试这三件事</h3>
+    <ul class="adv" id="adv"></ul>
+  </div>
+
+  <div class="panel">
+    <h3>保存结果 · 分享给朋友</h3>
+    <img class="cardimg" id="cardimg" alt="结果卡片">
+    <div class="hint">↑ 长按图片保存到相册</div>
+    <div class="share-txt" id="shareTxt" style="margin-top:12px"></div>
+    <div class="row">
+      <button class="btn ghost" onclick="copyTxt()" id="copyBtn">复制文案</button>
+      <button class="btn" onclick="restart()">再测一次</button>
+    </div>
+  </div>
+
+  <div class="disc">
+    得分含义：各维度按 1–5 级作答换算为 0–100 的指数，分数越高代表该方向的消耗越明显。<br>
+    本测试为娱乐向自我观察工具，非心理诊断、无预测性质，结果仅供参考。<br>
+    测嘛奔腾
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ═════ 配置 ═════ */
+var ACCOUNT = "测嘛奔腾";
+var PASSWORDS = {"8800": 1, "9900": 2};
+var DEMO = false;
+
+/* ═════ 五个维度 ═════ */
+var DIMS = [
+  {k:"a", n:"反复回想", full:"反复回想已发生的事"},
+  {k:"b", n:"决策犹豫", full:"决策犹豫"},
+  {k:"c", n:"在意评价", full:"在意他人评价"},
+  {k:"d", n:"自我高标准", full:"对自己高标准"},
+  {k:"e", n:"边界责任", full:"边界与责任感"}
+];
+var SCALE = [
+  {t:"从不", v:1}, {t:"偶尔", v:2}, {t:"有时", v:3}, {t:"经常", v:4}, {t:"总是", v:5}
+];
+
+var QS50 = [
+  /* 维度1 */
+  {d:0, q:"一件小事过去后，我还会在脑子里反复回想当时的细节"},
+  {d:0, q:"聊天结束后，我会回想自己刚刚哪句话说得不够好"},
+  {d:0, q:"明明事情已经结束了，我还是会反复想“如果当时那样做会不会更好”"},
+  {d:0, q:"别人一个表情或一句话，我之后还会反复琢磨很久"},
+  {d:0, q:"睡前我容易想起白天发生过的事，然后越想越清醒"},
+  {d:0, q:"只要觉得自己哪里做得不够好，我会在脑子里反复重播"},
+  {d:0, q:"我会把已经过去的尴尬场面在脑子里翻出来回味"},
+  {d:0, q:"即使别人已经不在意了，我还会继续想那件事"},
+  {d:0, q:"我常常会因为一件已经发生过的小事，反复消耗自己的情绪"},
+  {d:0, q:"有时候我知道再想也没用，但还是停不下来"},
+  /* 维度2 */
+  {d:1, q:"做选择时，我常常会把几个选项翻来覆去比较很久"},
+  {d:1, q:"我经常因为怕选错，而迟迟定不下来"},
+  {d:1, q:"哪怕是小事，我也会想“是不是还有更好的选项”"},
+  {d:1, q:"做完决定后，我还会回头怀疑自己是不是选错了"},
+  {d:1, q:"我很怕因为一个决定，错过另外一种可能"},
+  {d:1, q:"在需要二选一时，我容易一直拖着不决定"},
+  {d:1, q:"我会为了做个决定，查很多信息、问很多人，结果更难选"},
+  {d:1, q:"事情越重要，我越容易卡在“还没想清楚”里"},
+  {d:1, q:"我做决定时，很难接受“差不多就行”"},
+  {d:1, q:"选完之后，我常常还会想另一个选项是不是更合适"},
+  /* 维度3 */
+  {d:2, q:"我会留意别人说话时的语气变化，并猜测是不是和我有关"},
+  {d:2, q:"别人回复我慢一点，我容易想是不是我哪里让对方不舒服了"},
+  {d:2, q:"我会比较在意别人对我的看法，即使对方没有明说"},
+  {d:2, q:"我发完一段话后，会担心别人会不会误解我"},
+  {d:2, q:"如果感觉别人态度冷了一点，我会忍不住多想"},
+  {d:2, q:"我会因为担心别人怎么看，而压住自己原本想说的话"},
+  {d:2, q:"我容易把别人的随口一句话记在心里很久"},
+  {d:2, q:"当我感觉自己表现得不够好时，会很在意别人有没有注意到"},
+  {d:2, q:"在群体里，我会比较在意自己有没有被认可"},
+  {d:2, q:"我有时会为了避免别人有看法，而做一些自己并不想做的事"},
+  /* 维度4 */
+  {d:3, q:"我做一件事时，常常会希望自己做到比较理想的状态"},
+  {d:3, q:"如果结果没有达到我预期，我会对自己不太满意"},
+  {d:3, q:"即使别人觉得已经不错了，我还是会觉得自己还可以更好"},
+  {d:3, q:"我容易因为细节没处理好，而否定整件事的表现"},
+  {d:3, q:"我常常会给自己设定比较高的要求"},
+  {d:3, q:"我不太容易轻松地对自己说“这样已经可以了”"},
+  {d:3, q:"做得不够好时，我会在心里一直挑自己的问题"},
+  {d:3, q:"有时候我迟迟不开始，是因为怕做出来达不到自己要求"},
+  {d:3, q:"我对自己的失误通常比对别人的失误更难接受"},
+  {d:3, q:"明明已经很累了，我还是会要求自己再撑一下"},
+  /* 维度5 */
+  {d:4, q:"别人一开口求助，我很难第一时间拒绝"},
+  {d:4, q:"明明不是我一个人的事，我也容易主动多承担一点"},
+  {d:4, q:"我经常会担心“如果我不管，事情会不会更糟”"},
+  {d:4, q:"有时候我会替别人考虑太多，把自己放到后面"},
+  {d:4, q:"我容易把别人的情绪变化也背到自己身上"},
+  {d:4, q:"就算我已经很累了，也会因为怕麻烦别人而继续扛着"},
+  {d:4, q:"只要一件事和我沾边，我就容易觉得自己有责任管到底"},
+  {d:4, q:"我不太擅长把“帮忙”与“兜底”区分开"},
+  {d:4, q:"有时候我答应一件事，不是因为想做，而是因为不好意思拒绝"},
+  {d:4, q:"我常常在关系里默默多承担一些，不太会主动把界限说清楚"}
+];
+
+var QS100 = [
+  /* 维度1 */
+  {d:0, q:"开完一次会议后，我会反复想自己当时的发言表现"},
+  {d:0, q:"做完一次汇报后，我会想自己是不是漏讲了某个重要内容"},
+  {d:0, q:"和别人发生分歧后，我会反复回忆争论时的具体过程"},
+  {d:0, q:"收到工作反馈后，我会反复琢磨对方为什么这样评价我"},
+  {d:0, q:"聚会结束后，我会想自己当时有没有什么不合适的表现"},
+  {d:0, q:"发出一份重要文件后，我会反复回想自己有没有遗漏什么"},
+  {d:0, q:"一次计划没有按预期进行，我会反复回想是从哪一步开始出问题的"},
+  {d:0, q:"看到以前的聊天记录时，我容易重新陷入当时的情绪"},
+  {d:0, q:"想起曾经错过的一次机会，我会重新设想当时的其他做法"},
+  {d:0, q:"别人突然提起过去的一件事时，我会重新回忆当时的每个细节"},
+  {d:0, q:"自己讲了一个笑话却没人接话，我之后还会想起那个场面"},
+  {d:0, q:"事情出现意外结果后，我会反复梳理之前每一步的经过"},
+  {d:0, q:"别人突然改变话题，我会回想刚才自己说了什么"},
+  {d:0, q:"答应别人的事情完成后，我还会反复确认自己有没有做到位"},
+  {d:0, q:"想起以前一次没有及时表达意见的经历，我会重新设想当时该怎么说"},
+  {d:0, q:"团队合作结束后，我会反复回想自己当时的参与方式"},
+  {d:0, q:"给别人提出建议后，我会回想自己的建议是否合适"},
+  {d:0, q:"别人对我的帮助没有回应时，我会回想自己之前有没有做错什么"},
+  {d:0, q:"一次重要谈话结束后，我会反复回忆对方提到的具体细节"},
+  {d:0, q:"即使已经从一件不愉快的经历中走出来，我偶尔还是会重新陷入当时的回忆"},
+  /* 维度2 */
+  {d:1, q:"点外卖时，我会因为不知道选哪家而花很长时间"},
+  {d:1, q:"安排一天的行程时，我会反复调整活动的先后顺序"},
+  {d:1, q:"购买价格相近的商品时，我会迟迟无法决定买哪一个"},
+  {d:1, q:"选择旅行目的地时，我会因为想去的地方太多而难以确定"},
+  {d:1, q:"需要给别人挑礼物时，我会担心自己选的东西不够合适"},
+  {d:1, q:"选择学习一项新技能时，我会在不同课程之间犹豫很久"},
+  {d:1, q:"同时有几件事情要做时，我会纠结应该先处理哪一件"},
+  {d:1, q:"需要选择一个活动方案时，我会因为每个方案都有优缺点而难以取舍"},
+  {d:1, q:"面对不同的工作机会时，我会反复权衡各自的利弊"},
+  {d:1, q:"需要确定聚会时间时，我会担心选定的时间不方便其他人"},
+  {d:1, q:"选择一门课程或培训时，我会担心投入时间后不适合自己"},
+  {d:1, q:"需要决定是否参加一项活动时，我会迟迟无法给出答复"},
+  {d:1, q:"制订个人计划时，我会因为想把安排做得更合理而不断调整"},
+  {d:1, q:"需要在几种相似的服务中作出选择时，我会反复查看它们的区别"},
+  {d:1, q:"购买需要长期使用的东西时，我会担心自己没有考虑周全"},
+  {d:1, q:"需要分配有限的预算时，我会因为每一项都想保留而难以取舍"},
+  {d:1, q:"面对临时出现的两个安排时，我会纠结该优先满足哪一个"},
+  {d:1, q:"需要决定一件事是否值得投入时间时，我会反复衡量可能的收获"},
+  {d:1, q:"选择一个长期目标时，我会因为担心选错方向而迟迟不开始"},
+  {d:1, q:"别人让我当场作出选择时，我会因为还没想清楚而感到不自在"},
+  /* 维度3 */
+  {d:2, q:"发布一条社交动态后，我会留意有多少人点赞或评论"},
+  {d:2, q:"在多人讨论时，我会担心自己的观点显得不够成熟"},
+  {d:2, q:"别人看到我正在做一件还没完成的事情时，我会有些不自在"},
+  {d:2, q:"当自己的兴趣爱好和周围人不同时，我会犹豫要不要公开表达"},
+  {d:2, q:"别人夸奖我时，我会在意对方是不是出于客气"},
+  {d:2, q:"当有人当面反对我的观点时，我会特别在意其他人的反应"},
+  {d:2, q:"在需要自我介绍的场合，我会很在意自己给别人留下什么印象"},
+  {d:2, q:"和别人一起拍照时，我会在意自己在照片里的表现"},
+  {d:2, q:"在不熟悉的领域提问时，我会担心别人觉得我的问题太简单"},
+  {d:2, q:"别人在旁边看着我工作时，我会比平时更在意自己的表现"},
+  {d:2, q:"看到同龄人取得成绩时，我会在意自己在别人眼中处于什么位置"},
+  {d:2, q:"填写需要展示给他人看的个人评价时，我会顾虑自己的回答是否得体"},
+  {d:2, q:"展示自己的作品或成果时，我会特别留意别人首先注意到什么"},
+  {d:2, q:"集体活动需要分配角色时，我会在意别人认为我适合做什么"},
+  {d:2, q:"发现自己没有被邀请参加某次活动时，我会在意别人对我的看法"},
+  {d:2, q:"选择穿什么衣服出门时，我会考虑周围人可能怎样看待我的穿着"},
+  {d:2, q:"加入一个新的群体时，我会特别留意大家对我的初步反应"},
+  {d:2, q:"需要指出别人的错误时，我会担心对方和旁观者怎样评价我"},
+  {d:2, q:"分享自己的成绩或好消息时，我会顾虑别人会不会觉得我在炫耀"},
+  {d:2, q:"在公开场合答错问题后，我会特别在意别人是否记住了这件事"},
+  /* 维度4 */
+  {d:3, q:"提交工作成果前，我会反复调整格式和细节，直到自己满意"},
+  {d:3, q:"已经通过审核的内容，我有时还会想继续修改得更好"},
+  {d:3, q:"为了让工作成果更精致，我有时会花比预期更多的时间"},
+  {d:3, q:"开始一项任务前，我会希望自己先把整个流程都准备妥当"},
+  {d:3, q:"学习新技能时，我会因为进步速度不够理想而着急"},
+  {d:3, q:"做出第一版成果后，我会拿它和自己想象中的理想版本比较"},
+  {d:3, q:"休息时，如果还有计划内的事情没完成，我会觉得休息得不踏实"},
+  {d:3, q:"完成一项任务后，我容易马上关注下一个需要改进的地方"},
+  {d:3, q:"设定目标时，我会倾向于给自己安排比较紧凑的进度"},
+  {d:3, q:"当自己的表现不如预期时，我会觉得之前的努力还不够"},
+  {d:3, q:"即使已经完成当天的计划，我也容易给自己增加额外任务"},
+  {d:3, q:"看到别人轻松完成我花了很久才做好的事情时，我会对自己不满意"},
+  {d:3, q:"做事情时，我会希望每一个环节都按照预想的方式进行"},
+  {d:3, q:"为了不让别人失望，我会要求自己把答应的事情做到很好的程度"},
+  {d:3, q:"即使一项任务的要求已经达到，我仍会觉得自己应该再多做一点"},
+  {d:3, q:"面对不熟悉的工作时，我会希望自己尽快达到熟练水平"},
+  {d:3, q:"计划被打乱后，我会对自己没能提前安排好感到不满"},
+  {d:3, q:"当我需要向别人请教基础问题时，我会觉得自己应该提前学会"},
+  {d:3, q:"休息或娱乐时，我会想到自己还有哪些事情可以做得更好"},
+  {d:3, q:"一项成果得到认可后，我仍会把注意力放在尚未达到的标准上"},
+  /* 维度5 */
+  {d:4, q:"团队任务需要分工时，我会主动接下没人愿意负责的部分"},
+  {d:4, q:"别人没有按约定完成自己的任务时，我会忍不住替对方补上"},
+  {d:4, q:"工作中有人临时提出额外要求时，我会优先考虑怎样配合对方"},
+  {d:4, q:"共同生活时，即使不是我安排的事情，我也容易主动协调细节"},
+  {d:4, q:"朋友之间发生矛盾时，我会主动想办法让双方重新和好"},
+  {d:4, q:"即使别人没有开口求助，我也会提前替对方安排可能需要的事情"},
+  {d:4, q:"合作项目快到截止时间时，我会主动追踪其他人的进度"},
+  {d:4, q:"家人没有安排好事情时，我会觉得自己应该出面处理"},
+  {d:4, q:"别人把重要事情交给我后，我会觉得即使出现意外也应该由我负责"},
+  {d:4, q:"为了配合别人的时间安排，我会经常调整自己原来的计划"},
+  {d:4, q:"共同完成一项任务时，我会担心自己没有照顾到每个人的需求"},
+  {d:4, q:"发现团队里的某个人遇到困难时，我会主动分担对方的工作"},
+  {d:4, q:"别人忘记重要安排时，我会觉得自己也有责任提醒或跟进"},
+  {d:4, q:"家庭或朋友聚会需要有人统筹时，我会习惯性地承担组织工作"},
+  {d:4, q:"即使别人没有明确要求，我也会主动维持关系中的联系和沟通"},
+  {d:4, q:"别人临时改变计划时，我会优先调整自己来配合"},
+  {d:4, q:"共同使用的物品或空间需要整理时，我会觉得自己应该主动处理"},
+  {d:4, q:"工作量分配不均时，我有时会先把事情做完，而不是提出重新分配"},
+  {d:4, q:"为了避免大家相处尴尬，我会主动承担协调和解释的工作"},
+  {d:4, q:"当别人需要帮助而我也有自己的安排时，我会很难决定该如何分配时间"}
+];
+
+
+/* ═════ 六种结果类型 ═════ */
+var TYPES = {
+a:{name:"反复回放型", line:"事情已经过去了，但你的脑子还在重播",
+  desc:"你对已经发生的事有很强的回放倾向。一次对话、一个表情、一句没说好的话，会在脑子里反复出现，还会自动补上「如果当时那样就好了」的分支。真正耗电的不是那件事，是你一直在替它重演。",
+  adv:["给回想设一个截止时间：允许自己想 10 分钟，到点就把念头写下来然后合上","把「我当时应该……」改写成「下次我会……」，让复盘落在能做的事上","睡前如果又开始回放，用纸笔把念头倒出来，别让它在脑子里转圈"]},
+b:{name:"选择拉扯型", line:"不是不会选，是舍不得另外一种可能",
+  desc:"你在选择时会把选项反复比较，选完还会回头怀疑。真正卡住你的往往不是选项本身，而是「我是不是错过了更好的那个」——这个念头一旦启动，就很难停下来。",
+  adv:["给决定设信息上限：查够 3 个来源就停，不再追加","准备一句兜底话：「先照这个做，不合适再调」，多数选择并非不可逆","小事用 30 秒规则：30 秒定不下来，说明两个选项差不多"]},
+c:{name:"评价敏感型", line:"别人的一句话，在你这里要过很多遍",
+  desc:"你对他人的反应非常敏感，回复慢一点、语气变一点，都会被拿来反复分析是不是和自己有关。你的雷达开得太灵敏，把许多与你无关的信号也一起收了进来。",
+  adv:["每次开始猜测前，先分清「事实」和「猜测」：回复慢是事实，不喜欢我是猜测","做一次「不追问」的练习：忍住一次不去确认对方的想法","把注意力从「别人怎么看我」换成「我这次想表达什么」"]},
+d:{name:"标准绷紧型", line:"你不是要求高，你是不太允许自己松",
+  desc:"你对自己的标准一直在线：做得不错时想的是还能更好，做得不够时会在心里反复挑自己。长期耗电的不是事情，而是那套对自己的评判几乎从不关机。",
+  adv:["给任务定「完成线」而不是「完美线」，达到就停手","每天留一件「做成这样就行」的小事，练习对自己放行","把「我还能更好」改成「这一版够用了」，比较对象换成上一版的自己"]},
+e:{name:"过度揽责型", line:"别人的事，你也会不自觉地接过来",
+  desc:"你很难拒绝求助，也容易把别人的情绪和责任背到自己身上。你不是不会说不，而是拒绝之后的内疚比答应下来更难受，所以最后总是你多扛一点。",
+  adv:["分清「帮忙」和「兜底」：只做你承诺的那部分，其余交回给对方","练习延迟答应：「我看一下时间再回你」，给自己留判断余地","答应之前先问一句：这件事如果我不做，真的会出问题吗"]},
+balance:{name:"相对平衡型", line:"目前没有明显被内耗卡住的模式",
+  desc:"五个维度都在中低区间，说明现在没有哪一种模式在持续消耗你。这不代表你永远不会内耗，只是它还没形成固定套路——你看自己的方式，目前是松的。",
+  adv:["保持现在的节奏，不必刻意「优化」自己","如果某段时间突然觉得累，回来再测一次，看是哪个维度上来了","把这份结果当成观察的起点，而不是给自己下结论"]}
+};
+
+/* ═════ 状态 ═════ */
+var ver = 1, list = [], cur = 0, chosen = [], answers = [];
+var PROG_KEY = "neihaoProgress";
+var ADV = false;            /* C11 修法甲(补丁1)：本题是否已在等待前进 */
+
+function pass(v){ return (v===1) ? QS50 : QS100; }
+function perDim(){ return (ver===1) ? 10 : 20; }
+
+function pick(v){
+  ver = v;
+  var p1 = document.getElementById("pk1"), p2 = document.getElementById("pk2");
+  if(p1) p1.classList.toggle("sel", v===1);
+  if(p2) p2.classList.toggle("sel", v===2);
+  var b = document.getElementById("startBtn");
+  if(b) b.textContent = (v===1) ? "开始测试（50 题 · 约 4 分钟）" : "开始测试（100 题 · 约 8 分钟）";
+}
+function applyLock(lv){
+  var p1 = document.getElementById("pk1"), p2 = document.getElementById("pk2");
+  var note = document.getElementById("locknote");
+  if(lv===1){ if(p2) p2.style.display="none"; if(note){ note.style.display="block"; note.innerHTML="已解锁 <b>快速版 50 题</b>"; } }
+  else { if(p1) p1.style.display="none"; if(note){ note.style.display="block"; note.innerHTML="已解锁 <b>完整版 100 题</b>"; } }
+  pick(lv);
+}
+function show(id){
+  var ss = document.querySelectorAll(".screen");
+  for(var i=0;i<ss.length;i++) ss[i].classList.remove("on");
+  document.getElementById(id).classList.add("on");
+  window.scrollTo(0,0);
+}
+function normPw(s){
+  var map={"０":"0","１":"1","２":"2","３":"3","４":"4","５":"5","６":"6","７":"7","８":"8","９":"9"};
+  return String(s==null?"":s).replace(/[０-９]/g,function(c){return map[c];}).replace(/\D/g,"");
+}
+function checkPwd(){
+  var inp = document.getElementById("pw"), err = document.getElementById("pwe");
+  var v = normPw(inp.value); inp.value = v;
+  if(v.length === 0){ err.textContent = "请输入 4 位数字密码"; err.style.display = "block"; return; }
+  if(PASSWORDS[v]){ err.style.display = "none"; applyLock(PASSWORDS[v]); afterUnlock(PASSWORDS[v]); }
+  else{
+    err.textContent = "密码错误，请重新输入";
+    err.style.display = "block";
+    inp.classList.remove("shake"); void inp.offsetWidth; inp.classList.add("shake");
+    inp.value = "";
+    setTimeout(function(){ inp.classList.remove("shake"); }, 450);
+  }
+}
+function start(){
+  list = pass(ver); cur = 0; chosen = []; answers = [];
+  ADV = false;               /* C11 修法甲(补丁2)：新一局复位守卫，最坏情况下不会永久锁住点击 */
+  document.getElementById("ver").textContent = (ver===1 ? "快速版 50 题" : "完整版 100 题");
+  show("s-quiz"); renderQ();
+}
+function restart(){ try{ localStorage.removeItem(PROG_KEY); }catch(e){} show("s-intro"); }
+function renderQ(){
+  var q = list[cur], n = list.length;
+  document.getElementById("qcat").textContent = DIMS[q.d].full + "  ·  " + (cur+1) + "/" + n;
+  document.getElementById("qtext").textContent = q.q;
+  document.getElementById("bar").style.width = Math.max(3, Math.round((cur+1)/n*100)) + "%";
+  var box = document.getElementById("opts"); box.innerHTML = "";
+  SCALE.forEach(function(sc,i){
+    var d = document.createElement("div");
+    d.className = "opt" + (chosen[cur]===i ? " sel" : "");
+    d.innerHTML = '<span class="k">'+(i+1)+'</span><span>'+sc.t+'</span>';
+    d.onclick = function(){ choose(i); };
+    box.appendChild(d);
+  });
+  window.scrollTo(0,0);
+}
+function choose(i){
+  if(ADV) return;            /* C11 修法甲(补丁1)：160ms 内的重复点击忽略，避免排第二个定时器 */
+  ADV = true;
+  chosen[cur] = i; answers[cur] = SCALE[i].v;
+  var opts = document.querySelectorAll("#opts .opt");
+  for(var k=0;k<opts.length;k++) opts[k].classList.remove("sel");
+  if(opts[i]) opts[i].classList.add("sel");
+  saveProgress();
+  setTimeout(function(){
+    ADV = false;             /* C11 修法甲(补丁1)：定时器执行时才解锁，保证一次点击＝一次前进 */
+    if(cur < list.length-1){ cur++; renderQ(); } else { finish(); }
+  }, 160);
+}
+function prevQ(){ if(ADV) return; if(cur>0){ cur--; renderQ(); saveProgress(); } }
+function saveProgress(){
+  try{ localStorage.setItem(PROG_KEY, JSON.stringify({v:ver, cur:cur, a:answers})); }catch(e){}
+}
+var pending = null;
+function loadPending(){
+  try{
+    var raw = localStorage.getItem(PROG_KEY); if(!raw) return;
+    var s = JSON.parse(raw);
+    if(s && s.a && s.a.length && (s.v === 1 || s.v === 2)) pending = s;
+  }catch(e){ pending = null; }
+}
+/* 密码决定版本：只有本地进度与当前密码对应的版本一致时才恢复，否则丢弃 */
+function afterUnlock(lv){
+  if(pending && pending.v === lv){
+    ver = lv; list = pass(ver); answers = pending.a; chosen = pending.a.map(function(x){ return x-1; });
+    cur = Math.min(pending.cur, list.length - 1);
+    document.getElementById("ver").textContent = (ver===1 ? "快速版 50 题" : "完整版 100 题");
+    show("s-quiz"); renderQ();
+  } else {
+    pending = null;
+    try{ localStorage.removeItem(PROG_KEY); }catch(e){}
+    show("s-intro");
+  }
+}
+
+/* ═════ 计分 ═════ */
+function calc(){
+  var pd = perDim();
+  var dims = DIMS.map(function(dm, di){
+    var raw = 0, cnt = 0;
+    list.forEach(function(q, qi){
+      if(q.d === di){ raw += (answers[qi] || 0); cnt++; }
+    });
+    var idx = Math.round((raw - pd) / (pd * 4) * 100);
+    idx = Math.max(0, Math.min(100, idx));
+    return {name:dm.n, full:dm.full, k:dm.k, raw:raw, cnt:cnt, idx:idx, i:di};
+  });
+  var total = Math.round(dims.reduce(function(a,b){ return a + b.idx; }, 0) / dims.length);
+  // 稳定排序：分数相同时按维度顺序
+  var sorted = dims.slice().sort(function(x,y){ return y.idx - x.idx || x.i - y.i; });
+  var top = sorted[0], second = sorted[1];
+  var isBalance = (total <= 34) && (top.idx < 55);
+  var typeKey = isBalance ? "balance" : top.k;
+  var sec = (!isBalance && second.idx >= 60 && (top.idx - second.idx) <= 8) ? second : null;
+  var level = total <= 34 ? "目前消耗较低" : (total <= 55 ? "有一定消耗" : (total <= 74 ? "消耗偏高" : "消耗明显"));
+  return {dims:dims, total:total, top:top, second:second, isBalance:isBalance, type:typeKey, sec:sec, level:level, sorted:sorted};
+}
+
+/* ═════ 结果 ═════ */
+function finish(){
+  var r = calc(), t = TYPES[r.type];
+  document.getElementById("score").innerHTML = r.total + '<small> 分</small>';
+  document.getElementById("level").textContent = r.level + "　·　" + (ver===1 ? "50 题快速版" : "100 题完整版");
+  document.getElementById("tname").textContent = t.name;
+  document.getElementById("tline").textContent = t.line;
+  var tg = [r.top.full];
+  document.getElementById("tags").innerHTML = tg.map(function(x){ return "<span>"+x+"</span>"; }).join("");
+  document.getElementById("dims").innerHTML = r.dims.map(function(d){
+    return '<div class="dim"><span class="n">'+d.name+'</span><span class="b"><i style="width:'+d.idx+'%"></i></span><span class="s">'+d.idx+'</span></div>';
+  }).join("");
+  document.getElementById("desc").textContent = t.desc;
+  var sp = document.getElementById("secPanel");
+  if(r.sec){
+    sp.style.display = "block";
+    document.getElementById("sec").textContent =
+      "你的次要倾向是「"+r.sec.full+"」（"+r.sec.idx+" 分），与主要倾向只差 "+(r.top.idx-r.sec.idx)+" 分。" +
+      "说明这一项也在明显消耗你，可以一起留意：" + TYPES[r.sec.k].line + "。";
+  } else { sp.style.display = "none"; }
+  document.getElementById("adv").innerHTML = t.adv.map(function(a){ return "<li>"+a+"</li>"; }).join("");
+  document.getElementById("shareTxt").textContent =
+    "我的内耗指数 "+r.total+" 分，主要模式是「"+t.name+"」。\n" +
+    "五个维度里最高的是"+r.top.full+"（"+r.top.idx+"）。\n" +
+    "来自 测嘛奔腾 的内耗指数测试。";
+  makeCard(r, t);
+  try{ localStorage.removeItem(PROG_KEY); }catch(e){}
+  show("s-result");
+}
+
+function makeCard(r, t){
+  var W = 750, H = 1080, cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  var g = cv.getContext("2d");
+  var bg = g.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,"#fbf8f6"); bg.addColorStop(.6,"#f4eee9"); bg.addColorStop(1,"#efe6df");
+  g.fillStyle = bg; g.fillRect(0,0,W,H);
+  g.textAlign = "center";
+  g.fillStyle = "#8a8496"; g.font = "26px sans-serif";
+  g.fillText("内耗指数 · 自我观察", W/2, 92);
+  g.fillStyle = "#c9c3d6"; g.fillRect(W/2-80, 112, 160, 2);
+  g.fillStyle = "#8a8496"; g.font = "24px sans-serif";
+  g.fillText("你的内耗指数", W/2, 190);
+  g.fillStyle = "#b3562f"; g.font = "bold 130px sans-serif";
+  g.fillText(String(r.total), W/2, 320);
+  g.fillStyle = "#8a8496"; g.font = "24px sans-serif";
+  g.fillText(r.level, W/2, 372);
+  g.fillStyle = "#211d2b"; g.font = "bold 52px sans-serif";
+  g.fillText(t.name, W/2, 470);
+  g.fillStyle = "#6b6b70"; g.font = "26px sans-serif";
+  g.fillText(t.line, W/2, 520);
+  var y = 590;
+  r.dims.forEach(function(d){
+    g.textAlign = "left";
+    g.fillStyle = "#8a8496"; g.font = "24px sans-serif";
+    g.fillText(d.name, 80, y + 8);
+    g.fillStyle = "#e6dddc"; rrect(g, 250, y - 10, 380, 20, 10); g.fill();
+    var grd = g.createLinearGradient(250,0,630,0);
+    grd.addColorStop(0,"#d9a86a"); grd.addColorStop(1,"#b3562f");
+    g.fillStyle = grd; rrect(g, 250, y - 10, Math.max(8, 380*d.idx/100), 20, 10); g.fill();
+    g.fillStyle = "#7a7488"; g.font = "bold 24px sans-serif"; g.textAlign = "right";
+    g.fillText(String(d.idx), 700, y + 8);
+    y += 54;
+  });
+  g.textAlign = "center";
+  g.fillStyle = "#c9c3d6"; g.fillRect(80, 900, 590, 2);
+  g.fillStyle = "#211d2b"; g.font = "bold 34px sans-serif";
+  g.fillText("测 嘛 奔 腾", W/2, 962);
+  g.fillStyle = "#8a8496"; g.font = "22px sans-serif";
+  g.fillText("娱乐向自我观察 · 非心理诊断 · 结果仅供参考", W/2, 1006);
+  document.getElementById("cardimg").src = cv.toDataURL("image/png");
+}
+function rrect(g,x,y,w,h,r){
+  g.beginPath(); g.moveTo(x+r,y); g.lineTo(x+w-r,y); g.quadraticCurveTo(x+w,y,x+w,y+r);
+  g.lineTo(x+w,y+h-r); g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  g.lineTo(x+r,y+h); g.quadraticCurveTo(x,y+h,x,y+h-r);
+  g.lineTo(x,y+r); g.quadraticCurveTo(x,y,x+r,y); g.closePath();
+}
+function copyTxt(){
+  var t = document.getElementById("shareTxt").textContent, b = document.getElementById("copyBtn");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){ b.textContent="已复制"; setTimeout(function(){ b.textContent="复制文案"; },1500); });
+  } else { b.textContent = "请长按上方文字复制"; }
+}
+
+/* ═════ 卖家面板：网址加 ?seller ═════ */
+(function(){
+  if(!/(\?|&)seller\b/.test(location.search + location.hash)) return;
+  var url = location.href.split("#")[0].replace(/([?&])seller\b&?/g,"$1").replace(/[?&]$/,"");
+  var mainPw = "", fullPw = "";
+  for(var k in PASSWORDS){ if(!mainPw && PASSWORDS[k]===1) mainPw = k; if(!fullPw && PASSWORDS[k]===2) fullPw = k; }
+  function makeTips(pw){
+    return ["【发货通知】感谢下单～","",
+      "测评链接：" + url,
+      "访问密码：" + pw, "",
+      "请复制链接到浏览器打开，输入密码即可开始。",
+      "密码前后不要带空格，输错会有提示。",
+      "不限次数、不限时间，可反复查看结果。", "",
+      "本测试为娱乐向自我观察，非心理诊断、无预测性质，结果仅供参考。",
+      "有任何问题第一时间联系客服，别急，都会帮你解决。"].join("\n");
+  }
+  var app = document.getElementById("app");
+  app.innerHTML =
+    '<div class="screen on" style="padding:22px 18px 40px">' +
+      '<div class="panel" style="margin-top:14px"><h3>卖家面板（网址加 ?seller 才出现）</h3>' +
+      '<p style="font-size:13px;color:#6b6b70">两套话术的密码分别从页面配置读取。<b style="color:#c0392b">买家拍哪个版本就发哪一段，不要两套都给。</b></p></div>' +
+      '<div class="panel" style="margin-top:12px"><h3>A 版 · 50 题快速版</h3>' +
+      '<textarea id="tipsA" style="width:100%;height:230px;font-size:13px;line-height:1.8;border:1px solid #e8e4dc;border-radius:10px;padding:12px"></textarea>' +
+      '<button class="btn" id="cpA" style="padding:13px;font-size:14px;margin-top:10px">复制 A 版话术</button></div>' +
+      '<div class="panel" style="margin-top:12px"><h3>B 版 · 100 题完整版</h3>' +
+      '<textarea id="tipsB" style="width:100%;height:230px;font-size:13px;line-height:1.8;border:1px solid #e8e4dc;border-radius:10px;padding:12px"></textarea>' +
+      '<button class="btn" id="cpB" style="padding:13px;font-size:14px;margin-top:10px">复制 B 版话术</button></div>' +
+      '<p style="font-size:12px;color:#8a8496;margin-top:14px;line-height:1.8">当前密码：A 版 <b>'+mainPw+'</b>　B 版 <b>'+(fullPw||"未设置")+'</b><br>改密码请改页面里的 PASSWORDS，两段话术会跟着变。</p>' +
+    '</div>';
+  document.getElementById("tipsA").value = makeTips(mainPw);
+  document.getElementById("tipsB").value = makeTips(fullPw || "未设置");
+  function bindCopy(tid, bid, label){
+    var t = document.getElementById(tid), b = document.getElementById(bid);
+    b.onclick = function(){
+      t.select(); t.setSelectionRange(0, 999999);
+      var done = function(){ b.textContent = "已复制"; setTimeout(function(){ b.textContent = label; }, 1600); };
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(t.value).then(done, function(){ try{ document.execCommand("copy"); }catch(e){} done(); });
+      } else { try{ document.execCommand("copy"); }catch(e){} done(); }
+    };
+  }
+  bindCopy("tipsA","cpA","复制 A 版话术");
+  bindCopy("tipsB","cpB","复制 B 版话术");
+})();
+
+/* ═════ 事件绑定 ═════ */
+(function(){
+  var a = document.getElementById("pk1"), b = document.getElementById("pk2");
+  if(a) a.addEventListener("click", function(){ pick(1); });
+  if(b) b.addEventListener("click", function(){ pick(2); });
+  var btn = document.getElementById("pwBtn");
+  if(btn) btn.addEventListener("click", checkPwd);
+  var pi = document.getElementById("pw");
+  if(pi){
+    pi.addEventListener("keydown", function(e){ if(e.key === "Enter") checkPwd(); });
+    pi.addEventListener("input", function(){
+      var v = normPw(pi.value);
+      if(pi.value !== v) pi.value = v;
+      if(v.length >= 4) setTimeout(checkPwd, 150);
+    });
+  }
+  pick(1);
+  loadPending();
+})();
+</script>
+</body>
+</html>
